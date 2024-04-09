@@ -24,7 +24,7 @@ exports.createAccount = asyncHandler(async (req, res) => {
       type: "base64",
     };
     const headers = {
-      Authorization: `Client-ID ${process.env.IMGUR_ID}`,
+      Authorization: `Client-ID db00a1c09314175`,
     };
 
     try {
@@ -110,3 +110,5 @@ exports.getMe = asyncHandler(async (req, res) => {
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET_KEY);
 };
+
+

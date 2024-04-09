@@ -1,18 +1,64 @@
 require("dotenv").config();
 const asyncHandler = require("express-async-handler");
 const Appointment = require("../model/Appointment");
+const axios = require('axios')
 
 exports.createAppointment = asyncHandler(async (req, res) => {
-  const { doctor, date, time } = req.body;
+  const { doctorId, date, time } = req.body;
   const patient = req.user._id;
   const newAppointment = new Appointment({
-    doctor: doctor,
+    doctor: doctorId,
     patient: patient,
     date: date,
     time: time,
   });
+
   await newAppointment.save();
-  res.status(200).json(newAppointment);
+
+  // Fetch doctor's email from the database
+  const doctor = await Doctor.findById(doctorId);
+  if (!doctor) {
+    return res.status(404).json({ message: 'Doctor not found' });
+  }
+
+  // Convert the appointment date and time to GMT
+  const { gmtDate, gmtTime } = convertToGMT(date, time);
+
+  // Prepare email content
+  const patientEmailData = {
+    to: req.user.email,
+    subject: `Appointment Confirmation`,
+    text: `Your appointment with Dr. ${doctor.name} is scheduled on ${gmtDate} at ${gmtTime} (GMT).`,
+    scheduleDate: gmtDate,
+    scheduleTime: gmtTime,
+    recurring: false,
+  };
+
+  const doctorEmailData = {
+    to: doctor.email,
+    subject: `New Appointment Scheduled`,
+    text: `A new appointment has been scheduled with you on ${gmtDate} at ${gmtTime} (GMT) by ${req.user.name}.`,
+    scheduleDate: gmtDate,
+    scheduleTime: gmtTime,
+    recurring: false,
+  };
+
+  // The URL of your mailing service API
+  const emailServiceURL = `${process.env.EMAIL_SERVICE_URL}/emails/schedule`;
+
+  try {
+    // Schedule email for the patient
+    await axios.post(emailServiceURL, patientEmailData);
+    // Schedule email for the doctor
+    await axios.post(emailServiceURL, doctorEmailData);
+    
+    // Respond to the appointment creation request
+    res.status(200).json(newAppointment);
+  } catch (error) {
+    console.error('Error calling the mailing service API:', error);
+    // Handle the error appropriately
+    res.status(500).json({ message: 'Failed to schedule emails' });
+  }
 });
 
 exports.updateAppointment = asyncHandler(async (req, res) => {
@@ -134,3 +180,18 @@ exports.getAllRejectedAppointment = asyncHandler(async (req, res) => {
   }).populate("patient doctor");
   res.status(200).json(rejectedAppointments);
 });
+
+
+function convertToGMT(localDate, localTime) {
+  const localDateTimeStr = `${localDate}T${localTime}:00`;
+
+
+  const localDateTime = new Date(localDateTimeStr);
+
+  const gmtDateTime = new Date(localDateTime.getTime() + (localDateTime.getTimezoneOffset() * 60000));
+
+  const gmtDate = gmtDateTime.toISOString().split('T')[0];
+  const gmtTime = gmtDateTime.toISOString().split('T')[1].substring(0, 5);
+
+  return { gmtDate, gmtTime };
+}
