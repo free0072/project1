@@ -21,52 +21,13 @@ import Appointment from "./components/User/Pages/Appointment";
 import DocAppointment from "./components/Doctor/Pages/Appointments";
 import Report from "./pages/Report";
 
-import { initializeApp } from "firebase/app";
-import { getMessaging, getToken } from "firebase/messaging";
+
 
 function App() {
   const [data, dispatch] = useReducer(reducer, initialState);
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCbH1VbpzJVkI77b2u8aMA3PS6AUziVRZ0",
-    authDomain: "heath-668f9.firebaseapp.com",
-    databaseURL:
-      "https://heath-668f9-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "heath-668f9",
-    storageBucket: "heath-668f9.appspot.com",
-    messagingSenderId: "772370916873",
-    appId: "1:772370916873:web:fcdee932e979cdda937ad8",
-    measurementId: "G-N4JY7RVTGV",
-  };
 
-  function requestPermission() {
-    console.log("Requesting permission...");
-    Notification.requestPermission().then((permission) => {
-      if (permission === "granted") {
-        console.log("Notification permission granted.");
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const messaging = getMessaging(app);
 
-        getToken(messaging, {
-          vapidKey:
-            "BIkUUYVSebXx1_1RtgGcxJGYKIC5DfcLdic1Um9enEvcI1EkZ1Kk2qb3R-iZFZFOWJfVXBPzjuR5dSY8_7hq24A",
-        })
-          .then((currentToken) => {
-            if (currentToken) {
-              console.log("currentToken", currentToken);
-            } else {
-              console.log("no token");
-            }
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      } else {
-        console.log("no permission granted");
-      }
-    });
-  }
 
   return (
     <div className="App">

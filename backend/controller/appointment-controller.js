@@ -1,10 +1,12 @@
 require("dotenv").config();
 const asyncHandler = require("express-async-handler");
 const Appointment = require("../model/Appointment");
+const User = require('../model/User')
 const axios = require('axios')
 
 exports.createAppointment = asyncHandler(async (req, res) => {
   const { doctorId, date, time } = req.body;
+  console.log(doctorId, date, time)
   const patient = req.user._id;
   const newAppointment = new Appointment({
     doctor: doctorId,
@@ -16,7 +18,7 @@ exports.createAppointment = asyncHandler(async (req, res) => {
   await newAppointment.save();
 
   // Fetch doctor's email from the database
-  const doctor = await Doctor.findById(doctorId);
+  const doctor = await User.findById(doctorId);
   if (!doctor) {
     return res.status(404).json({ message: 'Doctor not found' });
   }
@@ -44,7 +46,7 @@ exports.createAppointment = asyncHandler(async (req, res) => {
   };
 
   // The URL of your mailing service API
-  const emailServiceURL = `${process.env.EMAIL_SERVICE_URL}/emails/schedule`;
+  const emailServiceURL = `${process.env.EMAIL_SERVICE_URL}/emails/`;
 
   try {
     // Schedule email for the patient

@@ -73,7 +73,7 @@ function AppointmentBooking() {
       axios
         .post(
           `${process.env.REACT_APP_API_URL}/appointment/create`,
-          { doctor: doctor._id, date, time },
+          { doctorId: doctor._id, date, time },
           { headers }
         )
         .then((response) => {

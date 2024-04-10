@@ -4,6 +4,8 @@ const axios = require("axios");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../model/User");
+const FormData = require('form-data');
+const fs = require('fs');
 
 exports.createAccount = asyncHandler(async (req, res) => {
   const { name, uid, email, specialization, password, role } = req.body;
@@ -16,24 +18,16 @@ exports.createAccount = asyncHandler(async (req, res) => {
   }
   const image = req.file;
 
-  let imageUrl;
-
   if (image) {
-    const body = {
-      image: image.buffer.toString("base64"), // Convert the file buffer to a base64-encoded string
-      type: "base64",
-    };
-    const headers = {
-      Authorization: `Client-ID db00a1c09314175`,
-    };
-
+    const form = new FormData();
+    form.append('file', image.buffer, image.originalname);
     try {
-      const res = await axios.post("https://api.imgur.com/3/upload", body, {
-        headers,
+      const driveResponse = await axios.post(`${process.env.IMAGE_UPLOAD_SERVICE_API}/drive/upload`, form, {
+        headers: form.getHeaders(),
       });
-      imageUrl = res.data.data.link;
+      imageUrl = driveResponse.data.webViewLink;
     } catch (error) {
-      console.log(error);
+      console.error("Error uploading to Google Drive:", error);
       return res.status(501).json({ message: "File Upload Error" });
     }
   }
