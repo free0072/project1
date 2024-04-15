@@ -16,7 +16,7 @@ exports.createScheduledEmail = async (req, res) => {
 
     // Save the scheduled email to the database
     await scheduledEmail.save();
-
+    console.log("new email scheduled", scheduledEmail)
     res.status(201).json({ message: 'Email scheduled successfully' });
   } catch (error) {
     console.error('Error scheduling email:', error);
